@@ -6,13 +6,13 @@
 //   KEYBOARD=1 npm test                        all-or-nothing steering, like a keyboard
 //   CHROMIUM_PATH=/path/to/chrome npm test     use an existing Chromium instead of Playwright's
 //
-// three.js is served from node_modules, so no network access is needed.
+// three.js (core and post-processing addons) is served from node_modules, so no network access is needed.
 import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 
 const root = new URL('..', import.meta.url);
 const html = readFileSync(new URL('index.html', root), 'utf8');
-const three = readFileSync(new URL('node_modules/three/build/three.module.min.js', root));
+const threeRoot = new URL('node_modules/three/', root);
 const stages = (process.env.STAGES || '1,2,3').split(',').map(Number);
 const surfaces = (process.env.SURFACES || 'grava,asfalto,nieve').split(',');
 const keyboard = process.env.KEYBOARD === '1';
@@ -24,7 +24,8 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: 1280, height: 760 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
-await page.route('https://cdn.jsdelivr.net/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: three }));
+// three.js core and addons come from node_modules, mapped by path
+await page.route('https://cdn.jsdelivr.net/**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: readFileSync(new URL(r.request().url().replace('https://cdn.jsdelivr.net/npm/three@0.160.0/', ''), threeRoot)) }));
 await page.route('https://fonts.googleapis.com/**', (r) => r.abort());
 await page.route('https://fonts.gstatic.com/**', (r) => r.abort());
 await page.route('http://tramo.test/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: html }));

@@ -2,7 +2,7 @@
 
 Simulador de rallies en 3D que funciona en el navegador. Cada tramo se genera a partir de su número (TC 1, TC 2…), con curvas de grado 1 a 6, horquillas, crestas y saltos. El copiloto canta las notas antes de cada curva y el cronómetro marca dos parciales y la meta.
 
-Todo el juego está en `index.html`. Usa [three.js](https://threejs.org) 0.160 desde jsDelivr y dos fuentes de Google Fonts; no hace falta compilar nada.
+Todo el juego está en `index.html`. Usa [three.js](https://threejs.org) 0.160 (con sus módulos de posprocesado) desde jsDelivr y dos fuentes de Google Fonts; no hace falta compilar nada.
 
 ## Jugar
 
@@ -37,7 +37,8 @@ En móvil y tablet aparecen botones táctiles. Se juega mejor en horizontal.
 - **Superficies:** grava, asfalto y nieve, cada una con su agarre, resistencia a la rodadura y comportamiento del neumático. Fuera de la carretera hay menos agarre y los árboles y rocas son obstáculos.
 - **Ayudas** (se pueden quitar en el menú): control de tracción y ABS que reservan el agarre que se está usando para girar, control de estabilidad y contravolante automático. Sin ayudas hay que dosificar gas y freno; es mejor con mando.
 - **Copiloto:** notas con dirección, grado, modificadores (*larga*, *se cierra*, *no cortes*, *cuidado*) y distancia hasta la siguiente. Se leen en voz alta si el navegador tiene voz en español.
-- **Gráficos:** todo se genera en el navegador, sin imágenes externas. Carretera y terreno con relieve (piedras, roderas, grano y grietas del asfalto), árboles con ramas y hojas recortadas, cielo con nubes y cordilleras, polvo y piedras que levanta el coche, huellas de neumático y suciedad que se acumula en la carrocería. La opción *Gráficos: Baja* aligera vegetación, sombras y partículas, y la resolución baja sola si caen los fotogramas.
+- **Tramo:** pista de 7 m entre bosques, con chevrones en las curvas lentas, cinta y público en horquillas y saltos, postes con reflectante en asfalto y varas de balizar en nieve.
+- **Gráficos:** todo se genera en el navegador, sin imágenes externas. Carretera y terreno con relieve (piedras, roderas, grano y grietas del asfalto), árboles con ramas y hojas recortadas, cielo con nubes, cordilleras y bruma, polvo y piedras que levanta el coche, huellas de neumático y suciedad que se acumula en la carrocería. En *Gráficos: Alta* hay posprocesado (antialiasing, resplandor y gradación de color) y sombras de mayor alcance; *Baja* aligera vegetación, sombras y partículas. La resolución baja sola si caen los fotogramas.
 
 Los ajustes y los mejores tiempos se guardan en el `localStorage` del navegador.
 
