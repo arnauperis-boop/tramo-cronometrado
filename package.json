@@ -1,0 +1,14 @@
+{
+  "name": "tramo-cronometrado",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simulador de rallies en 3D para el navegador",
+  "type": "module",
+  "scripts": {
+    "test": "node test/autopilot.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0",
+    "three": "0.160.0"
+  }
+}
