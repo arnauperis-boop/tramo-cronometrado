@@ -460,7 +460,7 @@ const saveBest = (b) => { try { localStorage.setItem(bestKey(), JSON.stringify(b
    ========================================================= */
 const SURFACES = {
   grava: {
-    label: 'grava', mu: 0.82, offMu: 0.6, B: 14, C: 1.25, crr: 0.026, offCrr: 0.065,
+    label: 'grava', mu: 0.9, offMu: 0.62, B: 14, C: 1.25, crr: 0.026, offCrr: 0.065,
     dust: 1, dustColor: '#d6c6a4', smoke: 0, gravelVol: 1,
     sky: { top: '#3b72b4', horizon: '#b9c8d4', bottom: '#a7ab9a' }, fog: [160, 700],
     sun: { color: '#ffe6c2', intensity: 3.3, dir: [0.5, 0.6, 0.42] }, hemi: { sky: '#c7d8ea', ground: '#5d4c33', intensity: 0.72 }, floor: '#5b5236',
@@ -468,7 +468,7 @@ const SURFACES = {
     trees: { pine: '#3c5a2a', round: '#5b6b31', mix: 0.3, snow: 0 }, road: 'gravel', mountains: ['#8496a9', '#5c7186'], clouds: { cover: 0.42, color: '#ffffff' }, tufts: { color: '#a99f5f', density: 5 }, grade: [1.03, 1.0, 0.96],
   },
   asfalto: {
-    label: 'asfalto', mu: 1.08, offMu: 0.62, B: 15.6, C: 1.35, crr: 0.015, offCrr: 0.06,
+    label: 'asfalto', mu: 1.15, offMu: 0.64, B: 15.6, C: 1.35, crr: 0.015, offCrr: 0.06,
     dust: 0, dustColor: '#8f806a', smoke: 1, gravelVol: 0.35,
     sky: { top: '#2f6cbb', horizon: '#bccbd9', bottom: '#9ca391' }, fog: [200, 760],
     sun: { color: '#fff0d8', intensity: 3.4, dir: [-0.45, 0.64, 0.42] }, hemi: { sky: '#cfe0f2', ground: '#435030', intensity: 0.72 }, floor: '#4a4a2e',
@@ -476,7 +476,7 @@ const SURFACES = {
     trees: { pine: '#34532a', round: '#4b6a2c', mix: 0.55, snow: 0 }, road: 'asphalt', mountains: ['#7f97ad', '#56708a'], clouds: { cover: 0.34, color: '#ffffff' }, tufts: { color: '#7a9440', density: 6 }, grade: [1.02, 1.0, 0.97],
   },
   nieve: {
-    label: 'nieve', mu: 0.5, offMu: 0.36, B: 16.4, C: 1.22, crr: 0.034, offCrr: 0.12,
+    label: 'nieve', mu: 0.58, offMu: 0.38, B: 16.4, C: 1.22, crr: 0.034, offCrr: 0.12,
     dust: 0.9, dustColor: '#f3f6f9', smoke: 0, gravelVol: 0.7,
     sky: { top: '#7d91a6', horizon: '#ccd4dc', bottom: '#d6dde3' }, fog: [100, 480],
     sun: { color: '#e8efff', intensity: 1.9, dir: [0.3, 0.58, -0.5] }, hemi: { sky: '#e2e9f2', ground: '#8e9aa6', intensity: 1.25 }, floor: '#c4c9cc',
@@ -2100,7 +2100,7 @@ function toggleMute() {
    Car physics: bicycle model with Pacejka-style tyres,
    weight transfer, AWD, handbrake and jumps
    ========================================================= */
-const CARP = { m: 1250, Iz: 1900, a: 1.18, b: 1.32, h: 0.46, R: 0.33, gears: [3.25, 2.2, 1.68, 1.36, 1.13, 0.96], rev: 3.0, final: 4.6, idle: 950, cut: 7500, front: 0.42, brake: 17500, bfront: 0.67, drag: 0.4, gripF: 1.0, gripR: 1.1 };
+const CARP = { m: 1250, Iz: 1900, a: 1.18, b: 1.32, h: 0.52, R: 0.33, gears: [3.25, 2.2, 1.68, 1.36, 1.13, 0.96], rev: 3.0, final: 4.6, idle: 950, cut: 7500, front: 0.42, brake: 17500, bfront: 0.66, drag: 0.4, gripF: 1.0, gripR: 1.05, frontBite: 1.15 };
 const WB = CARP.a + CARP.b;
 const TORQUE = [[800, 160], [2000, 270], [3000, 340], [4200, 390], [5600, 375], [6600, 335], [7300, 290], [7600, 0]];
 function torque(rpm) {
@@ -2111,8 +2111,9 @@ function torque(rpm) {
 const pac = (al, B, C) => Math.sin(C * Math.atan(B * al));
 const car = { x: 0, z: 0, th: 0, y: 0, vx: 0, vy: 0, r: 0, vv: 0, air: false, airT: 0, steer: 0, gear: 1, rpm: 950, shift: 0, thr: 0, spin: 0, slide: 0, axS: 0, ayS: 0, slopeF: 0, slopeL: 0, surfF: 0, surfR: 0, damage: 0, prog: 0, trackDist: 0, revHold: 0, pitchG: 0, rollG: 0, bodyPitch: 0, bodyRoll: 0, dead: false, hbCool: 0 };
 
-let gSurf = 0;
+let gSurf = 0, flatTest = false;
 function groundAt(x, z) {
+  if (flatTest) { gSurf = 0; return 0; }   // flat proving ground, only used by the handling tests
   const st = world.stage, i = st.nearest(x, z);
   if (i >= 0) {
     const th = st.th[i], sn = Math.sin(th), cs = Math.cos(th), dx = x - st.x[i], dz = z - st.z[i];
@@ -2123,7 +2124,7 @@ function groundAt(x, z) {
       if (t >= 0 && i < st.n - 1) e += (st.elev[i + 1] - e) * Math.min(1, t / Math.max(0.01, st.s[i + 1] - st.s[i]));
       else if (t < 0 && i > 0) e += (e - st.elev[i - 1]) * Math.max(-1, t / Math.max(0.01, st.s[i] - st.s[i - 1]));
       if (al <= HW) { gSurf = 0; return e + 0.14 - 0.04 * (al / HW) * (al / HW); }
-      gSurf = al <= HW + SH + 1.0 ? 1 : 2;
+      gSurf = al <= HW + SH + 1.6 ? 1 : 2;
       if (al <= HW + SH) return e + 0.1 - (0.15 * (al - HW)) / SH;
       const ei = st.elev[i], side = Math.sign(dx * cs - dz * sn);
       const line = lerp(e - 0.05 + (ei - e) * 0, skirtEnd(st, world.terrain, i, side), (al - HW - SH) / SKIRT);
@@ -2159,14 +2160,15 @@ function physicsStep(dt, inp) {
   // Steering
   const vabs = Math.abs(c.vx);
   const ap = Math.tan(Math.PI / (2 * S.C)) / S.B;
-  let target = inp.steer * (0.6 / (1 + vabs / 14) + 0.035);
+  let target = inp.steer * (0.6 / (1 + vabs / 22) + 0.05);
   if (settings.assists && c.vx > 4 && !c.air) {
     const bf = Math.atan2(c.vy + P.a * c.r, Math.max(vabs, 1));
     if (Math.abs(inp.steer) < 0.05) target = bf * 0.65;
-    target = clamp(target, bf - ap * 1.3, bf + ap * 1.3);
+    const apF = ap / P.frontBite;
+    target = clamp(target, bf - apF * 1.4, bf + apF * 1.4);
   }
   target = clamp(target, -0.62, 0.62);
-  c.steer += clamp(target - c.steer, -3.2 * dt, 3.2 * dt);
+  c.steer += clamp(target - c.steer, -4.2 * dt, 4.2 * dt);
 
   // Gearbox and engine
   let thr = inp.throttle, brk = inp.brake;
@@ -2201,7 +2203,7 @@ function physicsStep(dt, inp) {
   // Loads with longitudinal weight transfer
   const Fz = P.m * G, dW = (P.m * c.axS * P.h) / WB;
   const Fzf = clamp((Fz * P.b) / WB - dW, 0.2 * Fz, 0.8 * Fz), Fzr = Fz - Fzf;
-  const muOf = (sf) => (sf === 0 ? S.mu : sf === 1 ? S.mu * 0.92 : S.offMu);
+  const muOf = (sf) => (sf === 0 ? S.mu : sf === 1 ? S.mu * 0.95 : S.offMu);
   const maxF = muOf(sF) * Fzf * P.gripF, maxR = muOf(sR) * Fzr * P.gripR;
 
   // Longitudinal forces
@@ -2219,19 +2221,21 @@ function physicsStep(dt, inp) {
   if (settings.assists) {
     // Traction control and ABS: each axle only gets the longitudinal grip that
     // cornering is not already using, so full throttle or brake never washes the car wide
-    const cap = (Fx, max, al) => {
+    // (the rear brake also keeps a lateral reserve, like electronic brake-force distribution)
+    const cap = (Fx, max, al, rear) => {
       const lat = max * Math.abs(pac(al, S.B, S.C));
       const free = Math.sqrt(Math.max(0, max * max - lat * lat));
       const braking = Math.sign(Fx) !== Math.sign(c.vx) && Math.abs(c.vx) > 1;
-      const lim = braking ? Math.max(free * 0.9, max * 0.35) : Math.max(free * 0.92, max * 0.12);
-      return clamp(Fx, -Math.min(lim, max * 0.85), Math.min(lim, max * 0.85));
+      const lim = braking ? Math.max(free * (rear ? 0.8 : 0.9), max * (rear ? 0.25 : 0.35)) : Math.max(free * 0.92, max * 0.12);
+      const top = braking && rear ? 0.7 : 0.85;
+      return clamp(Fx, -Math.min(lim, max * top), Math.min(lim, max * top));
     };
-    FxF = cap(FxF, maxF, aF); FxR = cap(FxR, maxR, aR);
+    FxF = cap(FxF, maxF, aF, false); FxR = cap(FxR, maxR, aR, true);
   }
   let spinF = 0, spinR = 0;
   if (Math.abs(FxF) > maxF) { spinF = Math.abs(FxF) / maxF - 1; FxF = Math.sign(FxF) * maxF * 0.92; }
   const availF = Math.sqrt(Math.max(maxF * maxF - FxF * FxF, (0.3 * maxF) ** 2));
-  const FyF = -availF * pac(aF, S.B, S.C);
+  const FyF = -availF * pac(aF, S.B * P.frontBite, S.C);
   let FyR;
   const hb = inp.hb && !inp.held;
   if (hb && Math.abs(c.vx) > 0.5) {
@@ -2260,18 +2264,15 @@ function physicsStep(dt, inp) {
   c.r += (Mz / P.Iz) * dt;
   if (c.air) c.r *= 1 - 0.6 * dt;
 
-  // Stability control: trims yaw beyond what the steering asks for (oversteer only),
-  // unless the driver is using the handbrake
+  // Stability control as a spin catcher: the car may drift, but when the slip angle grows
+  // past ~18 degrees and the car keeps rotating into it, the extra rotation is taken away
   if (hb) c.hbCool = 0.7; else if (c.hbCool > 0) c.hbCool -= dt;
   if (settings.assists && !hb && c.hbCool <= 0 && !c.air && c.vx > 5) {
-    const lim = (muOf(sR) * G * 1.05) / c.vx;
-    const rT = clamp((c.vx * Math.tan(c.steer)) / (WB * (1 + 0.0012 * c.vx * c.vx)), -lim, lim);
-    const excess = Math.abs(c.r) - Math.abs(rT) - 0.04;
-    if (excess > 0 && (Math.sign(c.r) === Math.sign(rT) || Math.abs(rT) < 0.02 || Math.abs(c.r) > 0.15)) {
-      const beta = Math.abs(Math.atan2(c.vy, c.vx));
-      const k = 6 + 12 * smoothstep(0.04, 0.3, beta);
-      c.r -= Math.sign(c.r) * Math.min(excess, excess * k * dt);
-    }
+    // at speed a smaller slip angle is already dangerous
+    const beta = Math.atan2(c.vy, c.vx), b0 = clamp(0.32 - c.vx * 0.005, 0.12, 0.28), w = smoothstep(b0, b0 + 0.2, Math.abs(beta));
+    if (w > 0 && c.r * beta < 0) c.r -= c.r * Math.min(1, 14 * w * dt);
+    const lim = (muOf(sR) * G * 1.2) / c.vx;
+    if (Math.abs(c.r) > lim) c.r -= Math.sign(c.r) * (Math.abs(c.r) - lim) * Math.min(1, 4 * dt);
   }
   c.r = clamp(c.r, -4, 4);
   if (v < 0.35 && thr < 0.05 && !c.air && (brk > 0.1 || hb || inp.held || Math.abs(slopeF) < 0.07)) { c.vx = 0; c.vy = 0; c.r = 0; }
@@ -2999,7 +3000,7 @@ function boot() {
 boot();
 
 // Handle used by the automated tests in test/autopilot.mjs
-window.__tramo = { game, car, input, settings, stepGame, get world() { return world; }, get stage() { return stage; }, startRun, placeCar, renderer, scene, carMesh };
+window.__tramo = { game, car, input, settings, stepGame, physicsStep, setFlat: (v) => { flatTest = v; }, get world() { return world; }, get stage() { return stage; }, startRun, placeCar, renderer, scene, carMesh };
 </script>
 </body>
 </html>
